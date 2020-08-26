@@ -134,6 +134,9 @@ root@msnlab:/quagga# nano /etc/snmp/snmpd.conf
 - extend    test1
 - extend-sh test2
 
+Τροποποιούμε το πεδίο ```sysLocation``` από την προεπιλεγμένη τιμή σε:
+- sysLocation       University of Macedonia
+
 Στο τέλος του αρχείου, βρίσκουμε τη γραμμή ```master agentx``` και προσθέτουμε τα παρακάτω:
 - agentXSocket /var/agentx/master
 - agentXPerms 777 777
@@ -165,9 +168,61 @@ root@msnlab:/quagga# nano /etc/bash.bashrc
 ```console
 root@msnlab:/quagga# service snmpd restart
 ```
-Με το ```snmpwalk``` έαν όλα λειτουργούν σωστά θα πρέπει να λάβουμε αρκετές πληροφορίες σχετικά με το σύστημα μέσω της υπηρεσίας SNMP
+Εαν όλα λειτουργούν σωστά, με το ```snmpwalk``` θα πρέπει να λάβουμε αρκετές πληροφορίες σχετικά με το σύστημα μέσω της υπηρεσίας SNMP με την εξής εντολή.
+Όπου:
+- το ```-v 1``` είναι η έκδοση του SNMP που χρησιμοποιούμε για αυτή τη δοκιμή
+- το ```-c public``` είναι το community string και μπορεί να βρεθεί στο αρχείο /etc/snmp/snmpd.conf
+- και τέλος το ```127.0.0.1``` είναι η IPv4 διέυθυνση του συστήματος του οποίου προσπαθούμε να επικοινωνήσουμε με την SNMP υπηρεσία του. Μπορεί να είναι οποιοσδήποτε άλλος κόμβος που προσφέρει την υπηρεσία SNMP.
+
 ```console
 root@msnlab:/quagga# snmpwalk -v 1 -c public 127.0.0.1
+iso.3.6.1.2.1.1.1.0 = STRING: "Linux msnlab 5.4.0-42-generic #46-Ubuntu SMP Fri Jul 10 00:24:02 UTC 2020 x86_64"
+iso.3.6.1.2.1.1.2.0 = OID: iso.3.6.1.4.1.8072.3.2.10
+iso.3.6.1.2.1.1.3.0 = Timeticks: (8074890) 22:25:48.90
+iso.3.6.1.2.1.1.4.0 = STRING: "Me <me@example.org>"
+iso.3.6.1.2.1.1.5.0 = STRING: "msnlab"
+iso.3.6.1.2.1.1.6.0 = STRING: "University of Macedonia"
+iso.3.6.1.2.1.1.7.0 = INTEGER: 72
+iso.3.6.1.2.1.1.8.0 = Timeticks: (0) 0:00:00.00
+iso.3.6.1.2.1.1.9.1.2.1 = OID: iso.3.6.1.6.3.11.3.1.1
+iso.3.6.1.2.1.1.9.1.2.2 = OID: iso.3.6.1.6.3.15.2.1.1
+iso.3.6.1.2.1.1.9.1.2.3 = OID: iso.3.6.1.6.3.10.3.1.1
+iso.3.6.1.2.1.1.9.1.2.4 = OID: iso.3.6.1.6.3.1
+iso.3.6.1.2.1.1.9.1.2.5 = OID: iso.3.6.1.6.3.16.2.2.1
+iso.3.6.1.2.1.1.9.1.2.6 = OID: iso.3.6.1.2.1.49
+iso.3.6.1.2.1.1.9.1.2.7 = OID: iso.3.6.1.2.1.4
+iso.3.6.1.2.1.1.9.1.2.8 = OID: iso.3.6.1.2.1.50
+iso.3.6.1.2.1.1.9.1.2.9 = OID: iso.3.6.1.6.3.13.3.1.3
+iso.3.6.1.2.1.1.9.1.2.10 = OID: iso.3.6.1.2.1.92
+iso.3.6.1.2.1.1.9.1.3.1 = STRING: "The MIB for Message Processing and Dispatching."
+iso.3.6.1.2.1.1.9.1.3.2 = STRING: "The management information definitions for the SNMP User-based Security Model."
+iso.3.6.1.2.1.1.9.1.3.3 = STRING: "The SNMP Management Architecture MIB."
+iso.3.6.1.2.1.1.9.1.3.4 = STRING: "The MIB module for SNMPv2 entities"
+iso.3.6.1.2.1.1.9.1.3.5 = STRING: "View-based Access Control Model for SNMP."
+iso.3.6.1.2.1.1.9.1.3.6 = STRING: "The MIB module for managing TCP implementations"
+iso.3.6.1.2.1.1.9.1.3.7 = STRING: "The MIB module for managing IP and ICMP implementations"
+iso.3.6.1.2.1.1.9.1.3.8 = STRING: "The MIB module for managing UDP implementations"
+iso.3.6.1.2.1.1.9.1.3.9 = STRING: "The MIB modules for managing SNMP Notification, plus filtering."
+iso.3.6.1.2.1.1.9.1.3.10 = STRING: "The MIB module for logging SNMP Notifications."
+iso.3.6.1.2.1.1.9.1.4.1 = Timeticks: (0) 0:00:00.00
+iso.3.6.1.2.1.1.9.1.4.2 = Timeticks: (0) 0:00:00.00
+iso.3.6.1.2.1.1.9.1.4.3 = Timeticks: (0) 0:00:00.00
+iso.3.6.1.2.1.1.9.1.4.4 = Timeticks: (0) 0:00:00.00
+iso.3.6.1.2.1.1.9.1.4.5 = Timeticks: (0) 0:00:00.00
+iso.3.6.1.2.1.1.9.1.4.6 = Timeticks: (0) 0:00:00.00
+iso.3.6.1.2.1.1.9.1.4.7 = Timeticks: (0) 0:00:00.00
+iso.3.6.1.2.1.1.9.1.4.8 = Timeticks: (0) 0:00:00.00
+iso.3.6.1.2.1.1.9.1.4.9 = Timeticks: (0) 0:00:00.00
+iso.3.6.1.2.1.1.9.1.4.10 = Timeticks: (0) 0:00:00.00
+iso.3.6.1.2.1.25.1.1.0 = Timeticks: (42810291) 4 days, 22:55:02.91
+iso.3.6.1.2.1.25.1.2.0 = Hex-STRING: 07 E4 08 1A 10 02 1C 00 2B 00 00 
+iso.3.6.1.2.1.25.1.3.0 = INTEGER: 393216
+iso.3.6.1.2.1.25.1.4.0 = STRING: "BOOT_IMAGE=/boot/vmlinuz-5.4.0-42-generic root=UUID=08550881-62ca-4260-98c1-dad2b7f21ed9 ro quiet splash
+"
+iso.3.6.1.2.1.25.1.5.0 = Gauge32: 0
+iso.3.6.1.2.1.25.1.6.0 = Gauge32: 4
+iso.3.6.1.2.1.25.1.7.0 = INTEGER: 0
+End of MIB
 ```
 
 ## Αποθήκευση αλλαγών στο ```imunes/template``` docker image

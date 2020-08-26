@@ -1,26 +1,28 @@
-# Documentation
+## Περιγραφή
 
-The purpose of this document?
-Enable SNMP support on IMUNES nodes / docker image.
+Το [```OpenNMS```](https://www.opennms.com/) είναι μια πλατφόρμα παρακολούθησης και διαχείρησης δικτύων. Θα χρησιμοποιήσουμε τη λειτουργία ανακάλυψης (Discovery) του OpenNMS για να ανακαλύψουμε κόμβους στο δίκτυό μας και κάνοντας χρήση του πρωτοκόλλου SNMP να λάβουμε πληροφορίες σχετικά με το κάθε κόμβο που συναντάμε. Το δίκτυο μας θα είναι ένα προσομοιωμένο δίκτυο μέσα από το IMUNES.
 
-What is IMUNES?
+Το [```IMUNES```](http://imunes.net/) είναι ένας προσομοιωτής δικτύου ο οποίος χρησιμοποιεί το [```Quagga```](https://www.quagga.net/). Το Quagga είναι ένα πακέτο λογισμικού δρομολόγησης. Για κάθε εικονικό κόμβο δικτύου, το IMUNES τρέχει ένα docker ```container``` το οποίο κάνει χρήση ενός έτοιμου docker ```image```, το [```imunes/template```](https://hub.docker.com/r/imunes/template) image.
 
-What is OpenNMS?
+Το έγγραφο αυτό παρουσιάζει τα απαραίτητα βήματα για την:
+- εγκατάσταση του IMUNES
+- επεξεργασία του ```imunes/template``` docker image
+- ρύθμιση και εγκατάσταση του Quagga με υποστήριξη πρωτοκόλλου SNMP
+- ρύθμιση υπηρεσίας πρωτοκόλλου SNMP
+- αποθήκευση αλλαγών στο ```imunes/template``` docker image
+- εγκατάσταση και ρύθμιση του OpenNMS
 
 ## Περιβάλλον Εγκατάστασης
-
-Το λειτουργικό σύστημα που χρησιμοποιήθηκε είναι το *Xubuntu 20.04.1 LTS (Focal Fossa) 64-bit* σε εικονικό μηχάνημα (virtual machine) μέσω *VirtualBox*.
+Το λειτουργικό σύστημα που χρησιμοποιήθηκε για αυτή την εργασία είναι το *Xubuntu 20.04.1 LTS (Focal Fossa) 64-bit* σε εικονικό μηχάνημα *VirtualBox*. Στο σύστημα αυτό ο χρήστης ```user``` έχει δικαιώματα root και το όνομα του τερματικού είναι ```msnlab```. Η πρόσβαση στο docker container θα εμφανίζεται ώς ```root@msnlab``` καθώς το container χρησιμοποιεί το όνομα του συστήματος ως δικό του μιας και μοιραζόνται την ίδια σύνδεση δικτύου.
 
 ## Εγκατάσταση IMUNES
-
 Αρχικά, ενημερώνουμε και εγκαθιστούμε τυχόν αναβαθμίσεις στο σύστημα.
 
 ```console
 user@msnlab:~$ sudo apt update && sudo apt dist-upgrade -y
 ```
 
-Εγκαθιστούμε τα απαραίτητα πακέτα για την εγκατάσταση IMUNES.
-
+Εγκαθιστούμε τα απαραίτητα πακέτα λογισμικού για το IMUNES.
 ```console
 user@msnlab:~$ sudo apt install git openvswitch-switch docker.io xterm wireshark make imagemagick tk tcllib util-linux
 ```
@@ -46,50 +48,43 @@ user@msnlab:~$ sudo make install
 user@msnlab:~$ sudo imunes -p
 ```
 
-Πλέον, μπορούμε να τρέξουμε το IMUNES
+Πλέον, μπορούμε να τρέξουμε το IMUNES ως εξής:
 ```console
 user@msnlab:~$ sudo imunes
 ```
+Στο σημείο αυτό έχουμε ολοκληρώσει την εγκατάσταση του IMUNES και το επόμενο βήμα είναι να ρυθμίσουμε το Quagga έτσι ώστε υποστηρίζει το πρωτόκολλο SNMP.
 
-## Εγκατάσταση Quagga με υποστήριξη πρωτοκόλλου SNMP
-
-Στο σημείο αυτό έχουμε ολοκληρώσει την εγκατάσταση του IMUNES και το επόμενο βήμα είναι να ρυθμίσουμε το Quagga έτσι ώστε υποστηρίζει το πρωτόκολλο SNMP. Για να το πετύχουμε αυτό θα πρέπει:
-- να επεξεργαστούμε το ```imunes/template``` docker image με σκοπό
-- να εγκαταστήσουμε τα απαραίτητα πακέτα λογισμικού
-- να εγκαταστήσουμε εκ νέου το Quagga με υποστήριξη SNMP από τον πηγαίο κώδικα
-- να ρυθμίσουμε σωστά την υπηρεσία SNMP καθώς και να ρυθμίσουμε τις παγίδες SNMP (SNMP Traps) καθώς και
-- να αποθηκεύσουμε τις αλλαγές στο ```imunes/template``` docker image ώστε να μπορούμε να χρησιμοποιούμε πλέον το Quagga με SNMP υποστήριξη σε κάθε κόμβο δικτύου μέσα από το IMUNES.
-
-
-### Επιβεβαιώνουμε πως διαθέτουμε τοπικά το ```imunes/template``` docker image
+## Επεξεργασία του ```imunes/template``` docker image
+Επιβεβαιώνουμε πως διαθέτουμε τοπικά το ```imunes/template``` docker image
 ```console
 user@msnlab:~$ sudo docker image ls
-REPOSITORY      TAG     IMAGE ID        CREATED SIZE
-imunes/template latest  28ab347bef71    934MB
+REPOSITORY          TAG         IMAGE ID            CREATED SIZE
+imunes/template     latest      28ab347bef71        934MB
 ```
 
-### Εκτελούμε το image αυτό ως ένα container
+Εκτελούμε το image αυτό σε ένα container ως εξής:
 ```console
 user@msnlab:~$ sudo docker run --detach --tty --net='host' imunes/template
 ```
-Το container αυτό θα έχει πρόσβαση στο ίδιο δίκτυο με τον host, σε αυτή τη περίπτωση θέλουμε στο container να έχουμε πρόσβαση στο διαδίκτυο και αυτό το επιτυχγάνουμε με τη παράμετρο ```--net='host'```.
+Το container αυτό θα έχει πρόσβαση στο ίδιο δίκτυο με τον host διότι χρειαζόμαστε πρόσβαση στο διαδίκτυο και αυτό το επιτυχγάνουμε με τη παράμετρο ```--net='host'```.
 
-Επιβεβαιώνουμε πως το ```container``` δημιουργήθηκε επιτυχώς
+Επιβεβαιώνουμε πως το ```container``` δημιουργήθηκε επιτυχώς.
 ```console
 user@msnlab:~$ sudo docker container ls
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+d3cdf12c8d50        c009531c75fd        "/bin/bash"         10 seconds ago      Up 10 seconds                             clever_babbage
 ```
 
-Από το αποτέλεσμα της παραπάνω εντολής θα πρέπει να λάβουμε πληροφορίες σχετικά με το ```container``` που δημιουργήθηκε, ιδιάιτερα, χρειαζόμαστε το αναγνωριστικό ```CONTAINER-ID```.
+Από το αποτέλεσμα της παραπάνω εντολής θα πρέπει να λάβουμε πληροφορίες σχετικά με το ```container``` που δημιουργήθηκε, ιδιάιτερα, χρειαζόμαστε το αναγνωριστικό ```CONTAINER-ID``` σε αυτή τη περίπτωση το ```d3cdf12c8d50```.
 
-### Πρόσβαση στο shell του ```container```
+Πρόσβαση στο shell του ```container```
 ```console
-user@msnlab:~$ sudo docker exec -u root -t -i CONTAINER-ID /bin/bash
+user@msnlab:~$ sudo docker exec -u root -t -i d3cdf12c8d50 /bin/bash
 root@msnlab:~#
 ```
-
 Εκτελώντας τη παραπάνω εντολή έχει ως αποτέλεσμα να αποκτήσουμε ```root``` πρόσβαση στο shell του container.
 
-## Ρύθμιση Quagga με υποστήριξη SNMP
+## Ρύθμιση και εγκατάσταση του Quagga με υποστήριξη πρωτοκόλλου SNMP
 
 Ενημερώνουμε τα τοπικά αποθετήρια και εγκαθιστούμε τυχόν ενημερώσεις στο σύστημα
 ```console
@@ -175,6 +170,7 @@ root@msnlab:/quagga# service snmpd restart
 root@msnlab:/quagga# snmpwalk -v 1 -c public 127.0.0.1
 ```
 
+## Αποθήκευση αλλαγών στο ```imunes/template``` docker image
 Εφόσον ρυθμίσαμε το Quagga σωστά με υποστήριξη SNMP, το μόνο που απομένει είναι να αποθηκέυσουμε τις αλλαγές που κάναμε σε αυτό το container στο κύριο docker image που χρησιμοποιεί το IMUNES με σκοπό ο κάθε κόμβος στο IMUNES να διαθέτει την υπηρεσία SNMP.
 
 Τερματίζουμε τη σύνδεση μας με το docker container.
@@ -183,17 +179,16 @@ root@msnlab:/quagga# exit
 ```
 Υποβάλλουμε τις αλλαγές του container στο imunes/template docker image.
 ```console
-user@msnlab:~$ sudo docker commit CONTAINER-ID imunes/template
+user@msnlab:~$ sudo docker commit d3cdf12c8d50 imunes/template
 ```
+Πλέον ο κάθε εικονικός κόμβος στο IMUNES θα εμπεριέχει τις αλλαγές που κάναμε. Δηλαδή, ο κάθε κόμβος θα διαθέτει την υπηρεσία SNMP μέσω της οποίας θα μπορούμε να λαμβάνουμε πληροφορίες συστήματος κάνοντας χρήση του OpenNMS.
 
-
-# Εγκατάσταση OpenNMS
-
+## Εγκατάσταση και ρύθμιση του OpenNMS
 ```console
-user@msnlab:~$ 
+user@msnlab:~$ sudo apt install openjdk-11 ...
 ```
 
-## Virtual Machine Credentials
+## Διαπιστευτήρια Εικονικής Μηχανής
 
 ```
 Username        Password

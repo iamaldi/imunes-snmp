@@ -27,31 +27,28 @@ user@msnlab:~$ sudo apt update && sudo apt dist-upgrade -y
 user@msnlab:~$ sudo apt install git openvswitch-switch docker.io xterm wireshark make imagemagick tk tcllib util-linux
 ```
 
-Κατεβάζουμε ένα αντίγραφο του πηγαίου κώδικα του IMUNES από το GitHub.
-
+Κατεβάζουμε τον πηγαίο κώδικα του IMUNES από το GitHub και μεταβαίνουμε στον φάκελο ```imunes```
 ```console
-user@msnlab:~$ git clone https://github.com/imunes/imunes.git
+user@msnlab:~$ git clone https://github.com/imunes/imunes.git && cd imunes/
 ```
 
-Μεταβαίνουμε στον φάκελο ```imunes```
+Εκτελούμε ```sudo make install``` για να κάνουμε εγκατάσταση του IMUNES στο σύστημά μας.
 ```console
-user@msnlab:~$ cd imunes
+user@msnlab:~/imunes$ sudo make install
 ```
 
-και εκτελούμε ```sudo make install``` για να κάνουμε εγκατάσταση του IMUNES στο σύστημά μας.
-```console
-user@msnlab:~$ sudo make install
-```
+Έπειτα αρχικοποιούμε το IMUNES με την παρακάτω εντολή.
+Η παράμετρος ```-p``` θα προετοιμάσει το *virtual root file system* και θα κατεβάσει το ```imunes/template``` docker image τοπικά, ένα image το οποίο είναι αναγκαίο και εκτελείται σε κάθε εικονικό κόμβο πειραματικού δικτύου μέσα στο IMUNES.
 
-Έπειτα αρχικοποιούμε το IMUNES με την παρακάτω εντολή. Η παράμετρος ```-p``` θα προετοιμάσει το *virtual root file system* και θα κατεβάσει το ```imunes/template``` docker image τοπικά, ένα image το οποίο είναι αναγκαίο και εκτελείται σε κάθε κόμβο πείραματικού δικτύου μέσα στο IMUNES.
 ```console
 user@msnlab:~$ sudo imunes -p
 ```
 
-Πλέον, μπορούμε να τρέξουμε το IMUNES ως εξής:
+Πλέον, μπορούμε να το τρέξουμε ως εξής:
 ```console
 user@msnlab:~$ sudo imunes
 ```
+
 Στο σημείο αυτό έχουμε ολοκληρώσει την εγκατάσταση του IMUNES και το επόμενο βήμα είναι να ρυθμίσουμε το Quagga έτσι ώστε υποστηρίζει το πρωτόκολλο SNMP.
 
 ## Επεξεργασία του ```imunes/template``` docker image
@@ -66,7 +63,7 @@ imunes/template     latest      28ab347bef71        934MB
 ```console
 user@msnlab:~$ sudo docker run --detach --tty --net='host' imunes/template
 ```
-Το container αυτό θα έχει πρόσβαση στο ίδιο δίκτυο με τον host διότι χρειαζόμαστε πρόσβαση στο διαδίκτυο και αυτό το επιτυχγάνουμε με τη παράμετρο ```--net='host'```.
+Το container αυτό θα έχει πρόσβαση στο ίδιο δίκτυο με τον host διότι χρειαζόμαστε πρόσβαση στο διαδίκτυο για την εγκατάσταση επιπλέον λογισμικού μέσα στο container και αυτό το επιτυχγάνουμε με τη παράμετρο ```--net='host'```.
 
 Επιβεβαιώνουμε πως το ```container``` δημιουργήθηκε επιτυχώς.
 ```console
@@ -75,9 +72,9 @@ CONTAINER ID        IMAGE               COMMAND             CREATED             
 d3cdf12c8d50        c009531c75fd        "/bin/bash"         10 seconds ago      Up 10 seconds                             clever_babbage
 ```
 
-Από το αποτέλεσμα της παραπάνω εντολής θα πρέπει να λάβουμε πληροφορίες σχετικά με το ```container``` που δημιουργήθηκε, ιδιάιτερα, χρειαζόμαστε το αναγνωριστικό ```CONTAINER-ID``` σε αυτή τη περίπτωση το ```d3cdf12c8d50```.
+Από το αποτέλεσμα της παραπάνω εντολής θα πρέπει να λάβουμε πληροφορίες σχετικά με το ```container``` που δημιουργήθηκε, ιδιάιτερα, χρειαζόμαστε το αναγνωριστικό ```CONTAINER-ID``` σε αυτή τη περίπτωση αυτό είναι το ```d3cdf12c8d50```.
 
-Πρόσβαση στο shell του ```container```
+Αποκτάμε πρόσβαση στο ```container``` ως εξής:
 ```console
 user@msnlab:~$ sudo docker exec -u root -t -i d3cdf12c8d50 /bin/bash
 root@msnlab:~#
@@ -85,18 +82,17 @@ root@msnlab:~#
 Εκτελώντας τη παραπάνω εντολή έχει ως αποτέλεσμα να αποκτήσουμε ```root``` πρόσβαση στο shell του container.
 
 ## Ρύθμιση και εγκατάσταση του Quagga με υποστήριξη πρωτοκόλλου SNMP
-
 Ενημερώνουμε τα τοπικά αποθετήρια και εγκαθιστούμε τυχόν ενημερώσεις στο σύστημα
 ```console
 root@msnlab:~# apt update && apt dist-upgrade -y 
 ```
 
-Εγκαθιστούμε όλα τα απαραίτητα πακέτα λογισμικού (dependencies)
+Εγκαθιστούμε όλα τα απαραίτητα πακέτα λογισμικού (required packages)
 ```console
 root@msnlab:/# apt install git make snmp snmpd snmptrapd snmp-mibs-downloader automake autoconf libtool texinfo gawk pkg-config libreadline-dev libc-ares-dev libsnmp-dev
 ```
 
-Κατεβάζουμε το πηγαίο κώδικα του Quagga από το αποθετήριο μεταβαίνουμε στον φάκελο
+Κατεβάζουμε τον πηγαίο κώδικα του Quagga από το αποθετήριο και μεταβαίνουμε στον φάκελο ```quagga/```
 ```console
 root@msnlab:/# git clone https://git.savannah.gnu.org/git/quagga.git && cd quagga/
 ```
@@ -104,7 +100,7 @@ root@msnlab:/# git clone https://git.savannah.gnu.org/git/quagga.git && cd quagg
 ```console
 root@msnlab:/quagga# export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 ```
-Βάσει οδηγιών από το [INSTALL.quagga.txt](http://git.savannah.gnu.org/cgit/quagga.git/tree/INSTALL.quagga.txt) εκτελούμε τα εξής ώστε να αρχικοποιήσουμε τα απαραίτητα αρχεία για την εγκατάσταση.
+Βάσει των οδηγιών από το [INSTALL.quagga.txt](http://git.savannah.gnu.org/cgit/quagga.git/tree/INSTALL.quagga.txt) εκτελούμε τα εξής ώστε να αρχικοποιήσουμε τα απαραίτητα αρχεία για την εγκατάσταση.
 ```console
 root@msnlab:/quagga# automake --add-missing
 root@msnlab:/quagga# ./bootstrap.sh
@@ -121,6 +117,9 @@ root@msnlab:/quagga# ./configure --enable-snmp=agentx --enable-user=root --enabl
 ```console
 root@msnlab:/quagga# make install
 ```
+
+ >Στη περίπτωση που δεν γίνει σωστά η εγκατάσταση του Quagga, σιγουρευόμαστε η μεταβλητή περιβάλλοντος LDFLAGS να έχει λάβει τη σωστή τιμή και έπειτα τρέχουμε ξανά ```make install```.
+
 ## Ρύθμιση υπηρεσίας πρωτοκόλλου SNMP
 Μετά την εγκατάσταση του Quagga προχωράμε στις ρυθμίσεις της υπηρεσίας SNMP.
 
@@ -234,18 +233,152 @@ root@msnlab:/quagga# exit
 ```
 Υποβάλλουμε τις αλλαγές του container στο imunes/template docker image.
 ```console
-user@msnlab:~$ sudo docker commit d3cdf12c8d50 imunes/template
+user@msnlab:~$ sudo docker commit d3cdf12c8d50 imunes/template:latest
 ```
 Πλέον ο κάθε εικονικός κόμβος στο IMUNES θα εμπεριέχει τις αλλαγές που κάναμε. Δηλαδή, ο κάθε κόμβος θα διαθέτει την υπηρεσία SNMP μέσω της οποίας θα μπορούμε να λαμβάνουμε πληροφορίες συστήματος κάνοντας χρήση του OpenNMS.
 
+## Εναλλακτική εκγατάστασης ```imunes/template```
+Μια εναλλακτική πρόταση για την απόκτηση του ```imunes/template``` image με προρυθμισμένη την υπηρεσία SNMP είναι να την κατεβάσουμε από το αποθετήριο https://github.com/iamaldi/imunes-snmp/packages/373676?version=latest
+
+Το image αυτό έχει δημιουργηθεί με τα ίδια βήματα που περιγράψαμε παραπάνω.
+
 ## Εγκατάσταση και ρύθμιση του OpenNMS
+Η εγκατάσταση του OpenNMS είναι σχετικά απλή και μπορούμε απλά να ακολουθούμε τα βήματα στον οδηγό εγκατάστασης που βρίσκεται στο https://docs.opennms.org/opennms/branches/develop/guide-install/guide-install.html#_installing_on_debian
+
+Εγκαθιστούμε το Java OpenJDK 11.
 ```console
-user@msnlab:~$ sudo apt install openjdk-11 ...
+user@msnlab:~$ sudo apt install openjdk-11-jdk
+
+Προσθέτουμε τα απαραίτητα αποθετήρια.
+```console
+user@msnlab:~$ sudo cat << EOF | sudo tee /etc/apt/sources.list.d/opennms.list
+> deb https://debian.opennms.org stable main
+> deb-src https://debian.opennms.org stable main
+> EOF
+user@msnlab:~$ wget -O - https://debian.opennms.org/OPENNMS-GPG-KEY | sudo apt-key add -
+user@msnlab:~$ sudp apt-get update
 ```
 
-## Διαπιστευτήρια Εικονικής Μηχανής
+Προσθέτουμε ένα επιπλέον αποθετήριο.
+```console
+user@msnlab:~$ sudo add-apt-repository ppa:willat8/shepherd
+user@msnlab:~$ sudp apt-get update
+```
 
+Μέσω του apt-get εγκαθιστούμε το OpenNMS και τα απαραίτητα πακέτα λογισμικού που έρχονται με αυτό.
+```console
+user@msnlab:~$ sudo apt-get -y install opennms
 ```
-Username        Password
-user            msnlab1234
+Μετά την επιτυχής εγκατάσταση του OpenNMS, σειρά έχει να ρυθμίσουμε την βάση δεδομένων PostgreSQL.
+
+Ξεκινάμε την υπηρεσία PostgreSQL
+```console
+user@msnlab:~$ sudo systemctl start postgresql
 ```
+Αλλάζουμε τον χρήστη μας στον ```postgresql```
+```console
+user@msnlab:~$ sudo su postgress
+```
+
+Ως χρήστης ```postgresql```, με τις εντολές ```createuser``` και ```createdb``` προσθέτουμε έναν νέο χρήστη και δημιουργούμε μια νέα βάση ```opennms``` στη βάση δεδομένων μας.
+```console
+postgres@msnlab:/home/user$ createuser -P opennms
+Enter password for new role: 
+Enter it again: 
+postgres@msnlab:/home/user$ createdb -O opennms opennms
+```
+
+Έπειτα αλλάζουμε τον default κωδικό του χρήστη postgresql στη βάση και κάνουμε έξοδο από τον λογαριασμό χρήστη ```postgresql``` με ```exit```.
+```console
+postgres@msnlab:/home/user$ psql -c "ALTER USER postgresql WITH PASSWORD 'msnlabsecretpass';"
+postgres@msnlab:/home/user$ exit
+user@msnlab:~$
+```
+
+Καθώς αλλάξαμε τον κωδικό του χρήστη ```postgresql``` θα πρέπει να ενημερώσουμε το αρχείο ρυθμίσεων ```/etc/opennms/opennms-datasources.xml``` του OpenNMS με τα κατάλληλα δεδομένα.
+```console
+user@msnlab:~$ sudo nano /etc/opennms/opennms-datasources.xml
+```
+
+Σε αυτή τη περίπτωση το αρχείο θα πρέπει να μοιάζει με το παρακάτω.
+```xml
+<jdbc-data-source name="opennms"
+                    database-name="opennms"
+                    class-name="org.postgresql.Driver"
+                    url="jdbc:postgresql://localhost:5432/opennms"
+                    user-name="opennms"
+                    password="opennms" />
+
+<jdbc-data-source name="opennms-admin"
+                    database-name="template1"
+                    class-name="org.postgresql.Driver"
+                    url="jdbc:postgresql://localhost:5432/template1"
+                    user-name="postgres"
+                    password="msnlabsecretpass" />
+```
+
+Αναζητούμε το περιβάλλον της Java και το αποθηκεύουμε στις ρυθμίσεις του OpenNMS.
+```console
+user@msnlab:~$ sudo /usr/share/opennms/bin/runjava -s
+```
+
+Αρχικοποιούμε τη βάση δεδομένων και ανιχνεύουμε τυχόν βιβλιοθήκες συστήματος και αποθηκέυουμε τις ρυθμίσεις αυτές στο OpenNMS.
+```console
+user@msnlab:~$ sudo /usr/share/opennms/bin/install -dis
+```
+Ενεργοποιούμε την υπηρεσία του OpenNMS να ξεκινά μαζί με το λειτουργικό σύστημα.
+```console
+user@msnlab:~$ sudo systemctl enable opennms
+```
+
+Ξεκινάμε την υπηρεσία OpenNMS.
+```console
+user@msnlab:~$ sudo systemctl start opennms
+```
+Ο πίνακας διαχείρισης θα πρέπει να είναι πλέον προσβάσιμος μέσα από τον εξής σύνδεσμο http://localhost:8980/opennms.
+
+Συνδεόμαστε με τα διαπιστευτήρια admin/admin και αλλάζουμε τον κωδικό πρόσβασης.
+
+## Δημιουργία πειραματικού δικτύου στο IMUNES
+
+Σε αυτό το βήμα μένει να δημιουργήσουμε ένα δοκιμαστικό δίκτυο στο IMUNES και να ρυθμίσουμε το OpenNMS να συλλέγει δεδομένα πάνω σε αυτό μέσω του πρωτοκόλλου SNMP.
+
+Τρέχουμε το IMUNES.
+```console
+user@msnlab:~$ sudo imunes
+```
+
+Δημιουργούμε το εξής δίκτυο όπως φαίνεται και στην παρακάτω εικόνα και εκτελούμε το πείραμα (Experiment -> Execute). Το αρχείο αυτού του δικτύου μπορείτε να το βρείτε [εδώ](imunes-test-net.imn).
+![IMUNES Test Network](imunes-experimet-network.jpg)
+
+Το εικονικό αυτό δίκτυο περιλαμβάνει 2 τερματικούς υπολογιστές (```office-pc``` & ```home-pc```) και έναν εξυπηρετητή (```WEBSERVER```). Επιπλέον, το δίκτυο αυτό θα είναι προσβάσιμο μέσω της διέυθυνσης ```10.0.0.0/24```.
+
+## Αναζήτηση κόμβων δικτύου IMUNES μέσω OpenNMS
+
+Για να λάβουμε πληροφορίες σχετικά με αυτό το δίκυτο μέσω του πρωτοκόλλου ακολουθούμε τα εξής βήματα στον πίνακα διαχείρησης του OpenNMS.
+
+- Μεταβαίνουμε στον πίνακα διαχείρησης του OpenNMS.
+- Από τη μπάρα επιλογών πάνω δεξιά, κάνουμε κλίκ στο ```Configure OpenNMS``` εικονίδιο (γραναζάκι) ή μπορούμε να μεταβούμε κατευθείαν μέσω http://localhost:8980/opennms/admin/index.jsp ![OpenNMS Admin Panel](admin-panel.png)
+- Στο μενού ```Provisioning``` επιλέγουμε το ```Run Single Discovery Scan``` ή http://localhost:8980/opennms/admin/discovery/edit-scan.jsp ![Run Single Discovery Scan Option](run-single-discovery.png)
+- Στις ρυθμίσεις της εξερεύνησης, στο ```Include Ranges``` κάνουμε κλίκ στο ```Add New```. ![OpenNMS Single Discovery Scan Settings](singe-discovery-settings.png)
+- Στο νέο παράθυρο που θα εμφανιστεί, στο πεδίο ```Begin IP Address``` εισάγουμε τη διέυθυνση ```10.0.0.0``` και στο πεδίο ```End IP Address``` εισάγουμε τη διέυθυνση ```10.0.0.254``` και έπειτα κάνουμε κλίκ στο ```Add``` να προσθέσουμε το εύρος των διευθύνσεων. ![Single Discovery Scan IP Range](singe-discovery-ip-range.png)
+- Πλέον, το εύρος των διευθύνσεων αυτών θα πρέπει να εμφανιστεί ως εξής. ![IP Ranges Included](include-ip-ranges.png)
+- Κάνουμε κλίκ στο κουμπί ```Start Discovery Scan``` ![Start Discovery Scan](start-discovery-scan.png) με σκοπό να ξεκινήσει η αναζήτηση.
+
+Τα αποτελέσματα της αναζήτησης θα εμφανιστούν μετά από λίγα λεπτά μέχρι να ολοκληρωθεί η διαδικασία της ανακάλυψης όλων τον κόμβων δικτύου μέσα στο εύρος το οποίο δηλώσαμε.
+
+Το OpenNMS προσθέτει τους κόμβους που βρίσκει σε κάθε αναζήτηση στο ```Info -> Nodes```, δηλαδή, σε μία λίστα κόμβων όπου και από εκεί μπορούμε να επιλέξουμε τον κάθε κόμβο και να δούμε τις σχετικές πληροφορίες με αυτό. Μπορούμε να μεταβούμε στη λίστα αυτή και μέσω του συνδέσμου http://localhost:8980/opennms/element/nodeList.htm
+
+![Discovery Scan Results](scan-results.png)
+Όπως παρατηρούμε και στην παραπάνω εικόνα, το OpenNMS είναι σε θέση να ανακαλύψει όλους τους κόμβους του δικτύου στο IMUNES.
+
+Για να δούμε πληροφορίες σχετικά με τον κάθε κόμβο απλά κάνουμε κλίκ πάνω στο όνομα του. Ας εξερευνήσουμε τον κόμβο ```WEBSERVER```.
+![Node Info](webserver-node-details.png)
+
+Βλέπουμε πως το OpenNMS έκανε χρήση του πρωτοκόλλου SNMP με σκοπό τη συλλογή δεδομένων σχετικά με τον κόμβο αυτό όπως παρατηρούμε στο ```SNMP Attributes```. 
+
+## Συμπεράσματα
+
+Σε αυτό το έγγραφο είδαμε πως να εγκαταστήσουμε το IMUNES, έπειτα να ρυθμίσουμε το εργαλείο Quagga να υποστηρίζει το πρωτόκολλο SNMP. Αργότερα αποθηκέυσαμε τις αλλαγές αυτές στο imunes/template docker image. Έπειτα εγκαταστήσαμε το OpenNMS καθώς και δημιουργήσαμε ένα δοκιμαστικό δίκτυο στο IMUNES. Κάνοντας χρήση του OpenNMS είμασταν σε θέση να ανακαλύψουμε το δίκτυο αυτό και να κάνουμε συλλογή δεδομένων από κάθε κόμβο μέσω του πρωτοκόλλου SNMP.
+
+Το OpenNMS μας επιτρέπει να οργανώσουμε τους κόμβους τους οποίους ανακαλύπτουμε σε ομάδες για την ευκολότερη διαχείρηση των δικτύων μας. Επίσης, το OpenNMS μας προσφέρει έλεγχο διαθεσιμότητας δικτύο για κάθε υπηρεσία που ανακαλύπτει στον κάθε κόμβο. Περαιτέρω, μας επιτρέπει να ανανεώνουμε τις πληροφορίες του κάθε κόμβου κάνοντας χρήση του πρωτοκόλλου SNMP.

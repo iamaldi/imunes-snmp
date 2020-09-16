@@ -1,46 +1,44 @@
-## Description
+## Περιγραφή
 
-[```OpenNMS```](https://www.opennms.com/) is a free and open-source enterprise grade network monitoring and network management platform. In this project we will use OpenNMS' Discovery Scan in order to discover nodes in our emulated IMUNES network. We will be utilizing the SNMP protocol in order to retrieve additional data for each disovered node.
+Το [```OpenNMS```](https://www.opennms.com/) είναι μια πλατφόρμα παρακολούθησης και διαχείρησης δικτύων. Θα χρησιμοποιήσουμε τη λειτουργία ανακάλυψης (Discovery Scan) με σκοπό να ανακαλύψουμε κόμβους στο δίκτυό μας και με χρήση του πρωτοκόλλου SNMP να λάβουμε πληροφορίες σχετικά με το κάθε κόμβο που συναντάμε. Το δίκτυο αυτό θα είναι ένα προσομοιωμένο δίκτυο μέσα από το IMUNES.
 
+Το [```IMUNES```](http://imunes.net/) είναι ένας εξομοιωτής/προσομοιωτής δικτύου ο οποίος χρησιμοποιεί το [```Quagga```](https://www.quagga.net/). Το Quagga είναι ένα πακέτο λογισμικού δρομολόγησης. Για κάθε εικονικό κόμβο δικτύου, το IMUNES τρέχει ένα docker ```container``` το οποίο κάνει χρήση ενός έτοιμου docker ```image```, το [```imunes/template```](https://hub.docker.com/r/imunes/template) image.
 
-[```IMUNES```](http://imunes.net/) is a kernel based network emulator / simulator. IMUNES provides a general purpose IP network emulation/simulation architecture for real-time large scale experiments and uses [```Quagga```](https://www.quagga.net/). Quagga is a network routing software suite. Each IMUNES emulated network node runs inside a docker ```container```. The docker ```image``` used for each container is purpose is [```imunes/template```](https://hub.docker.com/r/imunes/template).
+Το έγγραφο αυτό παρουσιάζει τα απαραίτητα βήματα για την:
+- εγκατάσταση IMUNES
+- επεξεργασία του ```imunes/template``` docker image
+- ρύθμιση και εγκατάσταση Quagga με υποστήριξη πρωτοκόλλου SNMP
+- ρύθμιση υπηρεσίας πρωτοκόλλου SNMP
+- αποθήκευση αλλαγών στο ```imunes/template``` docker image
+- εγκατάσταση και ρύθμιση OpenNMS
+- δημιουργία πειραματικού δικτύου στο IMUNES
+- χρήση λειτουργίας OpenNMS Single Discovery Scan για την αναζήτηση κόμβων στο πειραματικό δίκτυο
 
-This document provides the necessary steps to:
-- install IMUNES
-- modify the ```imunes/template``` docker image
-- configure Quagga with SNMP support
-- configure SNMP service
-- install and configure OpenNMS
-- create an experimental/test IMUNES network
-- use OpenNMS' Discovery Scan feature to scan the experimental network created on IMUNES
+## Περιβάλλον Εγκατάστασης
+Το λειτουργικό σύστημα που χρησιμοποιήθηκε για αυτή την εργασία είναι το *Xubuntu 20.04.1 LTS (Focal Fossa) 64-bit* σε εικονικό μηχάνημα *VirtualBox*. Στο σύστημα αυτό ο χρήστης ```user``` έχει δικαιώματα root και το όνομα του τερματικού είναι ```msnlab```. Η πρόσβαση στο docker container θα εμφανίζεται ώς ```root@msnlab``` καθώς το container χρησιμοποιεί το όνομα του συστήματος ως δικό του μιας και μοιραζόνται την ίδια σύνδεση δικτύου.
 
-## Installation Environment
-
-A *Xubuntu 20.04.1 LTS (Focal Fossa) 64-bit* virtual machine was used for this project. In this VM, the root account is ```user``` and the hostname is ```msnlab```.
-
-
-## IMUNES Installation
-First and foremost, lets update and/or upgrade any system packages.
+## Εγκατάσταση IMUNES
+Αρχικά, ενημερώνουμε και εγκαθιστούμε τυχόν αναβαθμίσεις στο σύστημα.
 
 ```console
 user@msnlab:~$ sudo apt update && sudo apt dist-upgrade -y
 ```
 
-Install IMUNES dependencies.
+Εγκαθιστούμε τα απαραίτητα πακέτα λογισμικού για το IMUNES.
 ```console
 user@msnlab:~$ sudo apt install git openvswitch-switch docker.io xterm wireshark make imagemagick tk tcllib util-linux
 ```
 
-Clone IMUNES source code from GitHub and change to the ```imunes/``` directory.
+Κατεβάζουμε τον πηγαίο κώδικα του IMUNES από το GitHub και μεταβαίνουμε στον φάκελο ```imunes/```
 ```console
 user@msnlab:~$ git clone https://github.com/imunes/imunes.git && cd imunes/
 ```
-Run ```sudo make install``` in order to install IMUNES.
+
+Εκτελούμε ```sudo make install``` για να κάνουμε εγκατάσταση του IMUNES στο σύστημά μας.
 ```console
 user@msnlab:~/imunes$ sudo make install
 ```
 
-Next, 
 Έπειτα αρχικοποιούμε το IMUNES με την παρακάτω εντολή.
 Η παράμετρος ```-p``` θα προετοιμάσει το *virtual root file system* και θα κατεβάσει το ```imunes/template``` docker image τοπικά, ένα image το οποίο είναι αναγκαίο και εκτελείται σε κάθε εικονικό κόμβο πειραματικού δικτύου μέσα στο IMUNES.
 

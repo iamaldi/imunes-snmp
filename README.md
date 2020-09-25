@@ -1,3 +1,5 @@
+This document can also be found in [Greek](README-el.md).
+
 ## Description
 
 [```OpenNMS```](https://www.opennms.com/) is a free and open-source enterprise grade network monitoring and network management platform. In this project we will use the OpenNMS Discovery Scan in order to discover nodes in our emulated IMUNES network. We will be utilizing the SNMP protocol in order to retrieve additional data for each disovered node.

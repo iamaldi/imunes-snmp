@@ -53,6 +53,12 @@ user@msnlab:~$ sudo imunes
 
 At this point IMUNES installation has been completed and the next step is to configure Quagga to support the SNMP protocol.
 
+## Alternative
+
+In case you don't want to waste your time configuring and installing everything on your own just to get an SNMP enabled docker image for IMUNES, there is a solution to that.
+
+Just download the pre-configured docker image from this very repository packages at https://github.com/iamaldi/imunes-snmp/packages/373676?version=latest
+
 ## Modification of ```imunes/template``` docker image
 Confirm that there is a local copy of the ```imunes/template``` docker image
 ```console
@@ -248,13 +254,6 @@ user@msnlab:~$ sudo docker commit d3cdf12c8d50 imunes/template:latest
 ```
 
 With that done, now every node on an IMUNES network will be pre-configured with SNMP support.
-
-## Alternative
-
-In case you don't want to waste your time configuring and installing everything on your own just to get an SNMP enabled docker image for IMUNES, there is a solution to that.
-
-Just download the pre-configured docker image from this very repository packages at https://github.com/iamaldi/imunes-snmp/packages/373676?version=latest
-
 
 ## OpenNMS Installation & Configuration
 

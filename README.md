@@ -1,6 +1,6 @@
 ## Description
 
-[```OpenNMS```](https://www.opennms.com/) is a free and open-source enterprise grade network monitoring and network management platform. In this project we will use OpenNMS' Discovery Scan in order to discover nodes in our emulated IMUNES network. We will be utilizing the SNMP protocol in order to retrieve additional data for each disovered node.
+[```OpenNMS```](https://www.opennms.com/) is a free and open-source enterprise grade network monitoring and network management platform. In this project we will use the OpenNMS Discovery Scan in order to discover nodes in our emulated IMUNES network. We will be utilizing the SNMP protocol in order to retrieve additional data for each disovered node.
 
 
 [```IMUNES```](http://imunes.net/) is a kernel based network emulator / simulator. IMUNES provides a general purpose IP network emulation/simulation architecture for real-time large scale experiments and uses [```Quagga```](https://www.quagga.net/). Quagga is a network routing software suite. Each IMUNES emulated network node runs inside a docker ```container```. The docker ```image``` used for each container is purpose is [```imunes/template```](https://hub.docker.com/r/imunes/template).

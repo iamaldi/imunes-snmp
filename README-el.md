@@ -248,6 +248,7 @@ user@msnlab:~$ sudo docker commit d3cdf12c8d50 imunes/template:latest
 Η εγκατάσταση του OpenNMS είναι σχετικά απλή και μπορούμε απλά να ακολουθούμε τα βήματα στον οδηγό εγκατάστασης που βρίσκεται στο https://docs.opennms.org/opennms/branches/develop/guide-install/guide-install.html#_installing_on_debian
 
 Εγκαθιστούμε το Java OpenJDK 11.
+(Θα πάρει αρκετή ώρα. Θα πρέπει να κάνουμε υπομονή.)
 ```console
 user@msnlab:~$ sudo apt install openjdk-11-jdk
 ```
@@ -260,14 +261,15 @@ user@msnlab:~$ sudo cat << EOF | sudo tee /etc/apt/sources.list.d/opennms.list
 > EOF
 user@msnlab:~$ wget -O - https://debian.opennms.org/OPENNMS-GPG-KEY | sudo apt-key add -
 user@msnlab:~$ sudo add-apt-repository ppa:willat8/shepherd
-user@msnlab:~$ sudp apt-get update
+user@msnlab:~$ sudo apt-get update
 ```
 
 Μέσω του apt-get εγκαθιστούμε το OpenNMS και τα απαραίτητα πακέτα λογισμικού που έρχονται με αυτό.
+(Θα χρειασθεί να κάνετε λίγη υπομονή και εδώ.)
 ```console
 user@msnlab:~$ sudo apt-get -y install opennms
 ```
-Μετά την επιτυχής εγκατάσταση του OpenNMS, σειρά έχει να ρυθμίσουμε την βάση δεδομένων PostgreSQL.
+Μετά την επιτυχή εγκατάσταση του OpenNMS, σειρά έχει να ρυθμίσουμε την βάση δεδομένων PostgreSQL.
 
 Ξεκινάμε την υπηρεσία PostgreSQL
 ```console
@@ -286,14 +288,14 @@ Enter it again:
 postgres@msnlab:/home/user$ createdb -O opennms opennms
 ```
 
-Έπειτα αλλάζουμε τον default κωδικό του χρήστη postgresql στη βάση και κάνουμε έξοδο από τον λογαριασμό χρήστη ```postgresql``` με ```exit```.
+Έπειτα αλλάζουμε τον default κωδικό του χρήστη postgres στη βάση και κάνουμε έξοδο από τον λογαριασμό χρήστη ```postgresql``` με ```exit```.
 ```console
-postgres@msnlab:/home/user$ psql -c "ALTER USER postgresql WITH PASSWORD 'msnlabsecretpass';"
+postgres@msnlab:/home/user$ psql -c "ALTER USER postgres WITH PASSWORD 'msnlabsecretpass';"
 postgres@msnlab:/home/user$ exit
 user@msnlab:~$
 ```
 
-Καθώς αλλάξαμε τον κωδικό του χρήστη ```postgresql``` θα πρέπει να ενημερώσουμε το αρχείο ρυθμίσεων ```/etc/opennms/opennms-datasources.xml``` του OpenNMS με τα κατάλληλα δεδομένα.
+Καθώς αλλάξαμε τον κωδικό του χρήστη ```postgres``` θα πρέπει να ενημερώσουμε το αρχείο ρυθμίσεων ```/etc/opennms/opennms-datasources.xml``` του OpenNMS με τα κατάλληλα δεδομένα.
 ```console
 user@msnlab:~$ sudo nano /etc/opennms/opennms-datasources.xml
 ```

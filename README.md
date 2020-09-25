@@ -40,126 +40,131 @@ Run ```sudo make install``` in order to install IMUNES.
 user@msnlab:~/imunes$ sudo make install
 ```
 
-Next, 
-Έπειτα αρχικοποιούμε το IMUNES με την παρακάτω εντολή.
-Η παράμετρος ```-p``` θα προετοιμάσει το *virtual root file system* και θα κατεβάσει το ```imunes/template``` docker image τοπικά, ένα image το οποίο είναι αναγκαίο και εκτελείται σε κάθε εικονικό κόμβο πειραματικού δικτύου μέσα στο IMUNES.
+Next, initialize IMUNES. The ```-p``` parameter tells IMUNES to prepare the *virtual root file system* and download the default ```imunes/template``` docker image.
 
 ```console
 user@msnlab:~$ sudo imunes -p
 ```
 
-Πλέον, μπορούμε να το τρέξουμε ως εξής:
+Now, IMUNES can be run with:
 ```console
 user@msnlab:~$ sudo imunes
 ```
 
-Στο σημείο αυτό έχουμε ολοκληρώσει την εγκατάσταση του IMUNES και το επόμενο βήμα είναι να ρυθμίσουμε το Quagga έτσι ώστε να υποστηρίζει το πρωτόκολλο SNMP.
+At this point IMUNES installation has been completed and the next step is to configure Quagga to support the SNMP protocol.
 
-## Επεξεργασία του ```imunes/template``` docker image
-Επιβεβαιώνουμε πως διαθέτουμε τοπικά το ```imunes/template``` docker image
+## Modification of ```imunes/template``` docker image
+Confirm that there is a local copy of the ```imunes/template``` docker image
 ```console
 user@msnlab:~$ sudo docker image ls
 REPOSITORY          TAG         IMAGE ID            CREATED SIZE
 imunes/template     latest      28ab347bef71        934MB
 ```
 
-Εκτελούμε το image αυτό σε ένα container ως εξής:
+Start a docker container from the image:
 ```console
 user@msnlab:~$ sudo docker run --detach --tty --net='host' imunes/template
 ```
-Το container αυτό θα έχει πρόσβαση στο ίδιο δίκτυο με τον host διότι χρειαζόμαστε πρόσβαση στο διαδίκτυο για την εγκατάσταση επιπλέον λογισμικού μέσα στο container και αυτό το επιτυχγάνουμε με τη παράμετρο ```--net='host'```.
 
-Επιβεβαιώνουμε πως το ```container``` δημιουργήθηκε επιτυχώς.
+The parameter ```--net='host'``` provides internet access to the container through the host system. The container needs internet access to install additional required software dependencies. This is achieved 
+
+Confirm that the ```container``` was created successfully:
 ```console
 user@msnlab:~$ sudo docker container ls
 CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
 d3cdf12c8d50        c009531c75fd        "/bin/bash"         10 seconds ago      Up 10 seconds                             clever_babbage
 ```
 
-Από το αποτέλεσμα της παραπάνω εντολής θα πρέπει να λάβουμε πληροφορίες σχετικά με το ```container``` που δημιουργήθηκε. Ιδιάιτερα, χρειαζόμαστε το αναγνωριστικό ```CONTAINER-ID```, σε αυτή τη περίπτωση αυτό είναι το ```d3cdf12c8d50```.
+By running the above command we should get the ```CONTAINER-ID```. This information is necessary in order to gain access to the ```container```.
 
-Αποκτάμε πρόσβαση στο ```container``` ως εξής:
+Access the ```container's``` shell:
 ```console
 user@msnlab:~$ sudo docker exec -u root -t -i d3cdf12c8d50 /bin/bash
 root@msnlab:~#
 ```
-Εκτελώντας τη παραπάνω εντολή έχει ως αποτέλεσμα να αποκτήσουμε ```root``` πρόσβαση στο shell του container.
 
-## Ρύθμιση και εγκατάσταση του Quagga με υποστήριξη πρωτοκόλλου SNMP
-Ενημερώνουμε τα τοπικά αποθετήρια και εγκαθιστούμε τυχόν ενημερώσεις στο σύστημα
+## Quagga Configuration with SNMP Support
+
+Install any updates and/or upgrades inside the container:
 ```console
 root@msnlab:~# apt update && apt dist-upgrade -y 
 ```
 
-Εγκαθιστούμε όλα τα απαραίτητα πακέτα λογισμικού (required package dependencies)
+Install all the required dependencies:
 ```console
 root@msnlab:/# apt install git make snmp snmpd snmptrapd snmp-mibs-downloader automake autoconf libtool texinfo gawk pkg-config libreadline-dev libc-ares-dev libsnmp-dev
 ```
-
-Κατεβάζουμε τον πηγαίο κώδικα του Quagga από το αποθετήριο και μεταβαίνουμε στον φάκελο ```quagga/```
+ 
+Clone Quagga's source code from the repository and change to the ```quagga/``` folder: 
 ```console
 root@msnlab:/# git clone https://git.savannah.gnu.org/git/quagga.git && cd quagga/
 ```
-Θέτουμε την μεταβλητή περιβάλλοντος ```LD_LIBRARY_PATH``` με σκοπό ο μεταγγλωτιστής να γνωρίζει πως οι βιβλιοθήκες σε αυτό το ```container``` βρίσκονται στο φάκελο ```/usr/local/lib```
+
+Set the ```LD_LIBRARY_PATH``` environment variable in order to let the compiler know that the libraries on this ```container``` can be found under ```/usr/local/lib```:
 ```console
 root@msnlab:/quagga# export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 ```
-Βάσει των οδηγιών από το [INSTALL.quagga.txt](http://git.savannah.gnu.org/cgit/quagga.git/tree/INSTALL.quagga.txt) εκτελούμε τα εξής ώστε να αρχικοποιήσουμε τα απαραίτητα αρχεία για την εγκατάσταση.
+
+Based on the installation steps from [INSTALL.quagga.txt](http://git.savannah.gnu.org/cgit/quagga.git/tree/INSTALL.quagga.txt), run the following commands in order to initialize the required installation files.
 ```console
 root@msnlab:/quagga# automake --add-missing
 root@msnlab:/quagga# ./bootstrap.sh
 ```
-Επίσης, πρέπει να προσθέσουμε επιπλέον μια μεταβλητή περιβάλλοντος με σκοπό να ρυθμίσουμε το ```Quagga``` να χρησιμοποιεί τις βιβλιοθήκες που βρίσκονται στο φάκελο ```/usr/local/lib```.
+
+Add the ```LDFLAGS``` environment variable to let ```Quagga``` know that linker libraries can be found under ```/usr/local/lib``` and run ```ldconfig```.
 ```console
 root@msnlab:/quagga# export LDFLAGS='-L/usr/local/lib' && ldconfig
 ```
-Έπειτα ρυθμίζουμε το Quagga να κάνει χρήση του πρωτοκόλλου ```SNMP``` και να τρέχει ως χρήστης ```root``` καθώς και να διαβάζει τις ρυθμίσεις από το φάκελο ```/etc/quagga```.
+
+Configure Quagga to use the ```SNMP``` protocol and run as user ```root``` and read the configuration files from ```/etc/quagga/```.
 ```console
 root@msnlab:/quagga# ./configure --enable-snmp=agentx --enable-user=root --enable-group=root --sysconfdir=/etc/quagga
 ```
-Μετά την επιτυχή ρύθμιση, προχωράμε στην εγκατάσταση.
+
+After the configuration is completed, install Quagga by running:
 ```console
 root@msnlab:/quagga# make install
 ```
 
- >Στη περίπτωση που δεν γίνει σωστά η εγκατάσταση του Quagga, σιγουρευόμαστε η μεταβλητές περιβάλλοντος LD_LIBRARY_PATH και LDFLAGS να έχουν λάβει τη σωστή τιμή και έπειτα τρέχουμε ξανά το ```make install```.
+ > In case Quagga installation ```fails``` it may be due to incorrect linker libraries. Make sure to set the LD_LIBRARY_PATH and LDFLAGS environment variables correctly and retry the installation.
 
-## Ρύθμιση υπηρεσίας πρωτοκόλλου SNMP
-Μετά την εγκατάσταση του Quagga προχωράμε στις ρυθμίσεις της υπηρεσίας SNMP.
+## SNMP Service Configuration
 
-Το πρώτο αρχείο που θα πρέπει να επεξεργαστούμε είναι το ```/etc/snmp/snmpd.conf```, όπου και βρίσκονται οι κύριες ρυθμίσεις της υπηρεσίας SNMP.
-Ανοίγουμε το αρχείο αυτό με το ```nano```.
+Open and edit the SNMP configuration file  ```/etc/snmp/snmpd.conf``` with ```nano```:
 ```console
 root@msnlab:/quagga# nano /etc/snmp/snmpd.conf
 ```
-Βάζουμε σε σχόλια τα παρακάτω πεδία:
+
+Comment out the following lines:
 - agentAddress  udp:127.0.0.1:161
 - extend    test1
 - extend-sh test2
 
-Τροποποιούμε το πεδίο ```sysLocation``` από την προεπιλεγμένη τιμή σε:
+Modify the default value of ```'sysLocation'``` to:
 - sysLocation       University of Macedonia
 
-Στο τέλος του αρχείου, βρίσκουμε τη γραμμή ```master agentx``` και προσθέτουμε τα παρακάτω:
+At the bottom of the file, after line ```'master agentx'``` add the following:
 - agentXSocket /var/agentx/master
 - agentXPerms 777 777
 
-Ουσιαστικά προσθέσαμε επιπλέον παραμέτρους ώστε η υπηρεσία SNMP να λειτουργεί στο ```/var/agentx/master``` socket.
+We're basically telling SNMP to run under the ```/var/agentx/master``` socket.
 
-Το επόμενο αρχείο ρυθμίσεων που πρέπει να επεξεργαστούμε είναι το ```/etc/default/snmpd```.
+Next, edit the SNMP daemon configuration file ```'/etc/default/snmpd'```.
 ```console
 root@msnlab:/quagga# nano /etc/default/snmpd
 ```
-Βάζουμε σε σχόλια το παρακάτω:
+
+Comment out the following field:
 - export MIBS=
 
-Αλλάζουμε το ```SNMPDOPTS``` ως εξής:
+Change ```SNMPDOPTS``` to the following:
 - SNMPDOPTS='-Lsd -Lf /tmp/snmpd.log -u root -g root -I -agentx -p /var/run/snmpd.pid -c /etc/snmp/snmpd.conf'
 
-Ουσιαστικά ενημερώνουμε την υπηρεσία να κρατά logs στο αρχείο ```/tmp/snmpd.log```, να τρέχει με τα δικαιώματα του χρήστη ```root``` και να χρησιμοποιεί ως αρχείο ρυθμίσεων, το ```/etc/snmp/snmpd.conf```.
+We configure the SNMP daemon to keep logs under ```/tmp/snmpd.log```, run as user ```root``` and use the configuration under ```/etc/snmp/snmpd.conf```.
 
-Μένει να ρυθμίσουμε την υπηρεσία SNMP να ξεκινά κάθε φορά που ξεκινά και το docker container.
-Στο αρχείο ```/etc/bash.bashrc``` προσθέτουμε το παρακάτω:
+Configure the SNMP service to start automatically on every docker container startup.
+
+On the ```/etc/bash.bashrc``` file add the following lines:
 ```console
 root@msnlab:/quagga# nano /etc/bash.bashrc
 ```
@@ -167,15 +172,17 @@ root@msnlab:/quagga# nano /etc/bash.bashrc
 - \#Enable SNMP service on start-up
 - /usr/sbin/service snmpd start
 
-Κάνουμε επανεκκίνηση της υπηρεσίας SNMP
+Restart the SNMP service.
 ```console
 root@msnlab:/quagga# service snmpd restart
 ```
-Εαν όλα λειτουργούν σωστά, με την εντολή ```snmpwalk -v 1 -c public 127.0.0.1``` θα πρέπει να λάβουμε αρκετές πληροφορίες σχετικά με το σύστημα μέσω της υπηρεσίας SNMP.
-Όπου:
-- το ```-v 1``` είναι η έκδοση του SNMP που χρησιμοποιούμε για αυτή τη δοκιμή
-- το ```-c public``` είναι το community string και μπορεί να βρεθεί στο αρχείο ```/etc/snmp/snmpd.conf```
-- και τέλος, το ```127.0.0.1``` είναι η IPv4 διέυθυνση του συστήματος του οποίου προσπαθούμε να επικοινωνήσουμε με την SNMP υπηρεσία του. Μπορεί να είναι οποιοσδήποτε άλλος κόμβος που προσφέρει την υπηρεσία SNMP αλλά σε αυτή τη περίπτωση είναι το ```localhost```.
+
+If everything has been configured correcty, by running ```snmpwalk -v 1 -c public 127.0.0.1``` the SNMP service should respond with plenty of data.
+
+Breaking down the SNMPWalk command:
+- the ```-v 1``` parameter is the SNMP service used
+- ```-c public``` is the community string and a reference to it can be found on ```/etc/snmp/snmpd.conf```
+- ```127.0.0.1``` is the IP address of the SNMP service that we're trying to reach and retrieve SNMP data from.
 
 ```console
 root@msnlab:/quagga# snmpwalk -v 1 -c public 127.0.0.1
@@ -228,33 +235,37 @@ iso.3.6.1.2.1.25.1.7.0 = INTEGER: 0
 End of MIB
 ```
 
-## Αποθήκευση αλλαγών στο ```imunes/template``` docker image
-Εφόσον ρυθμίσαμε το Quagga σωστά με υποστήριξη SNMP, το μόνο που απομένει είναι να αποθηκέυσουμε τις αλλαγές που κάναμε σε αυτό το container στο κύριο docker image που χρησιμοποιεί το IMUNES με σκοπό ο κάθε κόμβος στο IMUNES να διαθέτει την υπηρεσία SNMP και τις αλλαγές που μόλις κάναμε.
+## Save changes to the ```imunes/template``` docker image
 
-Τερματίζουμε τη σύνδεση μας με το docker container.
+Exit the docker container.
 ```console
 root@msnlab:/quagga# exit
 ```
-Υποβάλλουμε τις αλλαγές του container στο ```imunes/template``` docker image.
+
+Save the changes made to the container on the ```imunes/template``` docker image.
 ```console
 user@msnlab:~$ sudo docker commit d3cdf12c8d50 imunes/template:latest
 ```
-Πλέον ο κάθε εικονικός κόμβος στο IMUNES θα εμπεριέχει τις αλλαγές που κάναμε. Δηλαδή, ο κάθε κόμβος θα διαθέτει την υπηρεσία SNMP μέσω της οποίας θα μπορούμε να λαμβάνουμε πληροφορίες συστήματος μέσα από το OpenNMS.
 
-## Εναλλακτική εκγατάστασης ```imunes/template```
-Μια εναλλακτική πρόταση για την απόκτηση του ```imunes/template``` image με προρυθμισμένη την υπηρεσία SNMP είναι να την κατεβάσουμε από το αποθετήριο https://github.com/iamaldi/imunes-snmp/packages/373676?version=latest
+With that done, now every node on an IMUNES network will be pre-configured with SNMP support.
 
-Το image αυτό έχει δημιουργηθεί με τα ίδια βήματα που περιγράψαμε παραπάνω, απλά υπάρχει ώστε να γλυτώνει χρόνο εγκατάστασης για τους υπόλοιπους πιθανούς χρήστες.
+## Alternative
 
-## Εγκατάσταση και ρύθμιση του OpenNMS
-Η εγκατάσταση του OpenNMS είναι σχετικά απλή και μπορούμε απλά να ακολουθούμε τα βήματα στον οδηγό εγκατάστασης που βρίσκεται στο https://docs.opennms.org/opennms/branches/develop/guide-install/guide-install.html#_installing_on_debian
+In case you don't want to waste your time configuring and installing everything on your own just to get an SNMP enabled docker image for IMUNES, there is a solution to that.
 
-Εγκαθιστούμε το Java OpenJDK 11.
+Just download the pre-configured docker image from this very repository packages at https://github.com/iamaldi/imunes-snmp/packages/373676?version=latest
+
+
+## OpenNMS Installation & Configuration
+
+OpenNMS installation is straight forward and a guide is available at https://docs.opennms.org/opennms/branches/develop/guide-install/guide-install.html#_installing_on_debian
+
+Install Java OpenJDK 11.
 ```console
 user@msnlab:~$ sudo apt install openjdk-11-jdk
 ```
 
-Προσθέτουμε τα απαραίτητα αποθετήρια.
+Following the installation guide, add the following repositories.
 ```console
 user@msnlab:~$ sudo cat << EOF | sudo tee /etc/apt/sources.list.d/opennms.list
 > deb https://debian.opennms.org stable main
@@ -262,25 +273,27 @@ user@msnlab:~$ sudo cat << EOF | sudo tee /etc/apt/sources.list.d/opennms.list
 > EOF
 user@msnlab:~$ wget -O - https://debian.opennms.org/OPENNMS-GPG-KEY | sudo apt-key add -
 user@msnlab:~$ sudo add-apt-repository ppa:willat8/shepherd
-user@msnlab:~$ sudp apt-get update
+user@msnlab:~$ sudo apt-get update
 ```
 
-Μέσω του apt-get εγκαθιστούμε το OpenNMS και τα απαραίτητα πακέτα λογισμικού που έρχονται με αυτό.
+Install OpenNMS
 ```console
 user@msnlab:~$ sudo apt-get -y install opennms
 ```
-Μετά την επιτυχής εγκατάσταση του OpenNMS, σειρά έχει να ρυθμίσουμε την βάση δεδομένων PostgreSQL.
 
-Ξεκινάμε την υπηρεσία PostgreSQL
+After the installation is done, let's configure the PostgreSQL service.
+
+Start the PostgreSQL service.
 ```console
 user@msnlab:~$ sudo systemctl start postgresql
 ```
-Αλλάζουμε τον χρήστη μας σε ```postgresql```
+
+Change to the ```postgresql``` user.
 ```console
 user@msnlab:~$ sudo su postgress
 ```
 
-Ως χρήστης ```postgresql```, με τις εντολές ```createuser``` και ```createdb``` προσθέτουμε έναν νέο χρήστη και δημιουργούμε μια νέα βάση ```opennms``` στη βάση δεδομένων PostgreSQL.
+As ```postgresql```, with the ```createuser``` and ```createdb``` commands add a new user and create a new database with the name ```opennms```.
 ```console
 postgres@msnlab:/home/user$ createuser -P opennms
 Enter password for new role: 
@@ -288,19 +301,19 @@ Enter it again:
 postgres@msnlab:/home/user$ createdb -O opennms opennms
 ```
 
-Έπειτα αλλάζουμε τον default κωδικό του χρήστη postgresql στη βάση και κάνουμε έξοδο από τον λογαριασμό χρήστη ```postgresql``` με ```exit```.
+Change the default password of the database user ```postgres``` and exit the user shell with ```exit```.
 ```console
-postgres@msnlab:/home/user$ psql -c "ALTER USER postgresql WITH PASSWORD 'msnlabsecretpass';"
+postgres@msnlab:/home/user$ psql -c "ALTER USER postgres WITH PASSWORD 'msnlabsecretpass';"
 postgres@msnlab:/home/user$ exit
 user@msnlab:~$
 ```
 
-Καθώς αλλάξαμε τον κωδικό του χρήστη ```postgresql``` θα πρέπει να ενημερώσουμε το αρχείο ρυθμίσεων ```/etc/opennms/opennms-datasources.xml``` του OpenNMS με τα κατάλληλα δεδομένα.
+Now that the password has been changed, update the OpenNMS configuration file ```/etc/opennms/opennms-datasources.xml``` with the new values.
 ```console
 user@msnlab:~$ sudo nano /etc/opennms/opennms-datasources.xml
 ```
 
-Σε αυτή τη περίπτωση το αρχείο θα πρέπει να μοιάζει με το παρακάτω.
+The contents of the file should look like the following.
 ```xml
 <jdbc-data-source name="opennms"
                     database-name="opennms"
@@ -317,68 +330,69 @@ user@msnlab:~$ sudo nano /etc/opennms/opennms-datasources.xml
                     password="msnlabsecretpass" />
 ```
 
-Αναζητούμε το περιβάλλον της Java και το αποθηκεύουμε στις ρυθμίσεις του OpenNMS.
+Update OpenNMS configuration with the Java path.
 ```console
 user@msnlab:~$ sudo /usr/share/opennms/bin/runjava -s
 ```
 
-Αρχικοποιούμε τη βάση δεδομένων και ανιχνεύουμε τυχόν βιβλιοθήκες συστήματος και αποθηκέυουμε τις ρυθμίσεις αυτές στο OpenNMS.
+Initialize the PostgreSQL database, detect any system libraries and save the results in the configuration.
 ```console
 user@msnlab:~$ sudo /usr/share/opennms/bin/install -dis
 ```
-Ενεργοποιούμε την υπηρεσία του OpenNMS να ξεκινά μαζί με το λειτουργικό σύστημα.
+
+Configure the OpenNMS service to start automatically.
 ```console
 user@msnlab:~$ sudo systemctl enable opennms
 ```
 
-Ξεκινάμε την υπηρεσία OpenNMS χειροκίνητα τη πρώτη φορά.
+Start the service manually for the first time.
 ```console
 user@msnlab:~$ sudo systemctl start opennms
 ```
-Ο πίνακας διαχείρισης θα πρέπει να είναι πλέον προσβάσιμος μέσα από τον εξής σύνδεσμο, http://localhost:8980/opennms.
 
-Συνδεόμαστε με τα διαπιστευτήρια ```admin/admin``` και αλλάζουμε τον κωδικό πρόσβασης με έναν πιο ισχυρό.
+The dashboard should be now accessible at http://localhost:8980/opennms.
 
-## Δημιουργία πειραματικού δικτύου στο IMUNES
+Login with the default credentials ```admin/admin``` and change the password.
 
-Σε αυτό το βήμα μένει να δημιουργήσουμε ένα πειραματικό δίκτυο στο IMUNES και να ρυθμίσουμε το OpenNMS να συλλέγει δεδομένα πάνω σε αυτό μέσω του πρωτοκόλλου SNMP.
+## Creating an experimental network on IMUNES
 
-Τρέχουμε το IMUNES.
+Run IMUNES.
 ```console
 user@msnlab:~$ sudo imunes
 ```
 
-Δημιουργούμε το εξής δίκτυο όπως φαίνεται και στην παρακάτω εικόνα και εκτελούμε το πείραμα (```Experiment``` -> ```Execute```). Το αρχείο αυτού του δικτύου μπορείτε να το βρείτε [εδώ](imunes-test-net.imn).
+Create the following network experiment and run it from the menu options ```Experiment``` -> ```Execute```. You can download this experiment from [here](imunes-test-net.imn).
 ![IMUNES Test Network](imunes-experimet-network.jpg)
 
-Το εικονικό αυτό δίκτυο περιλαμβάνει 2 τερματικούς υπολογιστές (```office-pc``` & ```home-pc```) και έναν εξυπηρετητή (```WEBSERVER```). Επιπλέον, το δίκτυο αυτό είναι προσβάσιμο μέσω της διέυθυνσης ```10.0.0.0/24```.
+The experiment network is comprised of two hosts ```office-pc``` & ```home-pc```, and a web server namely ```WEBSERVER```. This whole network is exposed on the ```10.0.0.0/24``` subnet.
 
-## Αναζήτηση κόμβων στο δίκτυο IMUNES μέσω OpenNMS Single Discovery Scan
+## IMUNES node discovery via OpenNMS Single Discovery Scan
 
-Για να λάβουμε πληροφορίες σχετικά με αυτό το δίκυτο μέσω του πρωτοκόλλου SNMP ακολουθούμε τα εξής βήματα στον πίνακα διαχείρησης του OpenNMS.
+In order to obtain information regarding the experiment network via SNMP, the following steps should be followed.
 
-- Μεταβαίνουμε στον πίνακα διαχείρησης του OpenNMS, http://localhost:8980/opennms
-- Από τη μπάρα επιλογών πάνω δεξιά, κάνουμε κλίκ στο ```Configure OpenNMS``` εικονίδιο (γραναζάκι) ή μπορούμε να μεταβούμε κατευθείαν μέσω http://localhost:8980/opennms/admin/index.jsp ![OpenNMS Admin Panel](admin-panel.png)
-- Στο μενού ```Provisioning``` επιλέγουμε το ```Run Single Discovery Scan``` ή http://localhost:8980/opennms/admin/discovery/edit-scan.jsp ![Run Single Discovery Scan Option](run-single-discovery.png)
-- Στις ρυθμίσεις του Single Discovery Scan, στο ```Include Ranges``` κάνουμε κλίκ στο ```Add New```. ![OpenNMS Single Discovery Scan Settings](singe-discovery-settings.png)
-- Στο νέο παράθυρο που θα εμφανιστεί, στο πεδίο ```Begin IP Address``` εισάγουμε τη διέυθυνση ```10.0.0.0``` και στο πεδίο ```End IP Address``` εισάγουμε τη διέυθυνση ```10.0.0.254``` και έπειτα κάνουμε κλίκ στο ```Add``` να προσθέσουμε το εύρος των διευθύνσεων. ![Single Discovery Scan IP Range](singe-discovery-ip-range.png)
-- Πλέον, το εύρος των διευθύνσεων αυτών θα πρέπει να εμφανιστεί ως εξής. ![IP Ranges Included](include-ip-ranges.png)
-- Κάνουμε κλίκ στο κουμπί ```Start Discovery Scan``` ![Start Discovery Scan](start-discovery-scan.png) με σκοπό να ξεκινήσει η αναζήτηση.
+- Navigate to the OpenNMS dashboard, http://localhost:8980/opennms
+- From the upper-right menu options, click on the ```Configure OpenNMS``` gear icon or navigate via a direct link at http://localhost:8980/opennms/admin/index.jsp ![OpenNMS Admin Panel](admin-panel.png)
+- Under the menu ```Provisioning``` select ```Run Single Discovery Scan``` or direct link at http://localhost:8980/opennms/admin/discovery/edit-scan.jsp ![Run Single Discovery Scan Option](run-single-discovery.png)
+- On Single Discovery Scan options, under ```Include Ranges``` click ```Add New```. ![OpenNMS Single Discovery Scan Settings](singe-discovery-settings.png)
+- On the pop-up window, under ```Begin IP Address``` insert the following IP address ```10.0.0.0``` and under ```End IP Address``` insert the IP address ```10.0.0.254``` and then click ```Add```. ![Single Discovery Scan IP Range](singe-discovery-ip-range.png)
+- The IP address range entered on the previous step should be now visible like the following. ![IP Ranges Included](include-ip-ranges.png)
+- Click ```Start Discovery Scan``` ![Start Discovery Scan](start-discovery-scan.png) in order for the discovery scan to begin.
 
-Τα αποτελέσματα της αναζήτησης θα εμφανιστούν μετά από λίγα λεπτά μέχρι να ολοκληρωθεί η διαδικασία της ανακάλυψης όλων τον κόμβων δικτύου μέσα στο εύρος το οποίο δηλώσαμε.
+Scan results will be available after a few minutes since OpenNMS needs to search the whole address space that we provided in the IP address range.
 
-Το OpenNMS προσθέτει τους κόμβους που βρίσκει σε κάθε αναζήτηση στο ```Info -> Nodes```, δηλαδή, σε μία λίστα κόμβων όπου και από εκεί μπορούμε να επιλέξουμε τον κάθε κόμβο και να δούμε τις σχετικές πληροφορίες με αυτό. Μπορούμε να μεταβούμε στη λίστα αυτή και μέσω του συνδέσμου http://localhost:8980/opennms/element/nodeList.htm
+During a discovery scan, OpenNMS adds each new node under ```Info -> Nodes```. The Nodes list can also be accessed directly at http://localhost:8980/opennms/element/nodeList.htm
 
 ![Discovery Scan Results](scan-results.png)
-Όπως παρατηρούμε και στην παραπάνω εικόνα, το OpenNMS είναι σε θέση να ανακαλύψει όλους τους κόμβους του δικτύου στο IMUNES που δηλώσαμε στο εύρος διευθύνσεων.
+As we see in the previous image, OpenNMS is able to discover all the nodes of the emulated experiment IMUNES network based on the provided IP address range.
 
-Για να δούμε πληροφορίες σχετικά με τον κάθε κόμβο απλά κάνουμε κλίκ πάνω στο όνομα του. Ας εξερευνήσουμε τον κόμβο ```WEBSERVER```.
+In order to view detailed information regarding each node, simply click on its name. For example, let's explore the ```WEBSERVER``` node.
 ![Node Info](webserver-node-details.png)
 
-Βλέπουμε πως το OpenNMS έκανε χρήση του πρωτοκόλλου SNMP με σκοπό τη συλλογή δεδομένων σχετικά με τον κόμβο αυτό όπως παρατηρούμε στο ```SNMP Attributes```.
+Notice that OpenNMS utilized the SNMP protocol in order to gather information regarding each node. Such information is avaiilable under ```SNMP Attributes```.
 
-Επίσης, στο ```Availability``` βλέπουμε τις υπηρεσίες που ανίχνευσε το OpenNMS στον κόμβο αυτό αλλά καθώς και τη διαθεσιμότητα της κάθε υπηρεσίας. Σε περίπτωση που κάποια από τις υπηρεσίες αυτές (π.χ. είτε ICMP ή SNMP) δεν είναι διαθέσιμη για κάποιο χρονικό διάστημα, το OpenNMS θα μας ειδοποιήσει και θα σημειώσει το συμβάν ώστε να μπορούμε να το διερευνήσουμε περαιτέρω. 
+```Availability``` also shows the other services that OpenNMS was able to detect and also their availability. For example, in case one of these detected services goes offline, OpenNMS will log and notify of the event.
 
-Το OpenNMS μας επιτρέπει να οργανώσουμε τους κόμβους δικτύων σε ομάδες για την ευκολότερη διαχείρηση τους. Επίσης, προσφέρει έλεγχο διαθεσιμότητας υπηρεσίας για κάθε κόμβο. Περαιτέρω, μας επιτρέπει να ανανεώσουμε και να ενημερώσουμε τις πληροφορίες του κάθε κόμβου. Οι πληροφορίες αυτές περιλαμβάνουν δεδομένα όπως το υλικό αλλά έως και πληροφορίες σχετικά με τη φυσική τοποθεσία ενός κόμβου. Αυτές οι πληροφορίες μας βοηθούν να καταλαβαίνουμε καλύτερα τις τοπολογίες των δικτύων μας και προσφέρουν ευκολότερη διαχείρηση των περιουσιακών στοιχείων ενός οργανισμού.
+
+OpenNMS allows for the organization of nodes in groups for easier management. Additionally, it offers the ability to add and update node information. This information includes attributes from the hardware used to the physical location of the asset. This data can help understand the network topologies and offers an easier asset management of an organization.
 
 ![Asset Info](asset-info.png)

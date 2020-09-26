@@ -57,7 +57,7 @@ At this point IMUNES installation has been completed and the next step is to con
 
 ## Alternative
 
-In case you don't want to waste your time configuring and installing everything on your own just to get an SNMP enabled docker image for IMUNES, there is a solution to that.
+In case you want to save some time configuring and installing everything on your own just to get an SNMP enabled docker image for IMUNES, there is a solution to that.
 
 Just download the pre-configured docker image from this very repository packages at https://github.com/iamaldi/imunes-snmp/packages/373676?version=latest
 

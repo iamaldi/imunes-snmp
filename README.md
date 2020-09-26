@@ -372,22 +372,22 @@ The experiment network is comprised of two hosts ```office-pc``` & ```home-pc```
 In order to obtain information regarding the experiment network via SNMP, the following steps should be followed.
 
 - Navigate to the OpenNMS dashboard, http://localhost:8980/opennms
-- From the upper-right menu options, click on the ```Configure OpenNMS``` gear icon or navigate via a direct link at http://localhost:8980/opennms/admin/index.jsp ![OpenNMS Admin Panel](admin-panel.png)
-- Under the menu ```Provisioning``` select ```Run Single Discovery Scan``` or direct link at http://localhost:8980/opennms/admin/discovery/edit-scan.jsp ![Run Single Discovery Scan Option](run-single-discovery.png)
-- On Single Discovery Scan options, under ```Include Ranges``` click ```Add New```. ![OpenNMS Single Discovery Scan Settings](singe-discovery-settings.png)
-- On the pop-up window, under ```Begin IP Address``` insert the following IP address ```10.0.0.0``` and under ```End IP Address``` insert the IP address ```10.0.0.254``` and then click ```Add```. ![Single Discovery Scan IP Range](singe-discovery-ip-range.png)
-- The IP address range entered on the previous step should be now visible like the following. ![IP Ranges Included](include-ip-ranges.png)
-- Click ```Start Discovery Scan``` ![Start Discovery Scan](start-discovery-scan.png) in order for the discovery scan to begin.
+- From the upper-right menu options, click on the ```Configure OpenNMS``` gear icon or navigate via a direct link at http://localhost:8980/opennms/admin/index.jsp ![OpenNMS Admin Panel](./img/admin-panel.png)
+- Under the menu ```Provisioning``` select ```Run Single Discovery Scan``` or direct link at http://localhost:8980/opennms/admin/discovery/edit-scan.jsp ![Run Single Discovery Scan Option](./img/run-single-discovery.png)
+- On Single Discovery Scan options, under ```Include Ranges``` click ```Add New```. ![OpenNMS Single Discovery Scan Settings](./img/singe-discovery-settings.png)
+- On the pop-up window, under ```Begin IP Address``` insert the following IP address ```10.0.0.0``` and under ```End IP Address``` insert the IP address ```10.0.0.254``` and then click ```Add```. ![Single Discovery Scan IP Range](./img/singe-discovery-ip-range.png)
+- The IP address range entered on the previous step should be now visible like the following. ![IP Ranges Included](./img/include-ip-ranges.png)
+- Click ```Start Discovery Scan``` ![Start Discovery Scan](./img/start-discovery-scan.png) in order for the discovery scan to begin.
 
 Scan results will be available after a few minutes since OpenNMS needs to search the whole address space that we provided in the IP address range.
 
 During a discovery scan, OpenNMS adds each new node under ```Info -> Nodes```. The Nodes list can also be accessed directly at http://localhost:8980/opennms/element/nodeList.htm
 
-![Discovery Scan Results](scan-results.png)
+![Discovery Scan Results](./img/scan-results.png)
 As we see in the previous image, OpenNMS is able to discover all the nodes of the emulated experiment IMUNES network based on the provided IP address range.
 
 In order to view detailed information regarding each node, simply click on its name. For example, let's explore the ```WEBSERVER``` node.
-![Node Info](webserver-node-details.png)
+![Node Info](./img/webserver-node-details.png)
 
 Notice that OpenNMS utilized the SNMP protocol in order to gather information regarding each node. Such information is avaiilable under ```SNMP Attributes```.
 
@@ -396,4 +396,4 @@ Notice that OpenNMS utilized the SNMP protocol in order to gather information re
 
 OpenNMS allows for the organization of nodes in groups for easier management. Additionally, it offers the ability to add and update node information. This information includes attributes from the hardware used to the physical location of the asset. This data can help understand the network topologies and offers an easier asset management of an organization.
 
-![Asset Info](asset-info.png)
+![Asset Info](./img/asset-info.png)

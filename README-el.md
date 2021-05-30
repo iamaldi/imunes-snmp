@@ -358,22 +358,22 @@ user@msnlab:~$ sudo imunes
 Για να λάβουμε πληροφορίες σχετικά με αυτό το δίκυτο μέσω του πρωτοκόλλου SNMP ακολουθούμε τα εξής βήματα στον πίνακα διαχείρησης του OpenNMS.
 
 - Μεταβαίνουμε στον πίνακα διαχείρησης του OpenNMS, http://localhost:8980/opennms
-- Από τη μπάρα επιλογών πάνω δεξιά, κάνουμε κλίκ στο ```Configure OpenNMS``` εικονίδιο (γραναζάκι) ή μπορούμε να μεταβούμε κατευθείαν μέσω http://localhost:8980/opennms/admin/index.jsp ![OpenNMS Admin Panel](admin-panel.png)
-- Στο μενού ```Provisioning``` επιλέγουμε το ```Run Single Discovery Scan``` ή http://localhost:8980/opennms/admin/discovery/edit-scan.jsp ![Run Single Discovery Scan Option](run-single-discovery.png)
-- Στις ρυθμίσεις του Single Discovery Scan, στο ```Include Ranges``` κάνουμε κλίκ στο ```Add New```. ![OpenNMS Single Discovery Scan Settings](singe-discovery-settings.png)
-- Στο νέο παράθυρο που θα εμφανιστεί, στο πεδίο ```Begin IP Address``` εισάγουμε τη διέυθυνση ```10.0.0.0``` και στο πεδίο ```End IP Address``` εισάγουμε τη διέυθυνση ```10.0.0.254``` και έπειτα κάνουμε κλίκ στο ```Add``` να προσθέσουμε το εύρος των διευθύνσεων. ![Single Discovery Scan IP Range](singe-discovery-ip-range.png)
-- Πλέον, το εύρος των διευθύνσεων αυτών θα πρέπει να εμφανιστεί ως εξής. ![IP Ranges Included](include-ip-ranges.png)
-- Κάνουμε κλίκ στο κουμπί ```Start Discovery Scan``` ![Start Discovery Scan](start-discovery-scan.png) με σκοπό να ξεκινήσει η αναζήτηση.
+- Από τη μπάρα επιλογών πάνω δεξιά, κάνουμε κλίκ στο ```Configure OpenNMS``` εικονίδιο (γραναζάκι) ή μπορούμε να μεταβούμε κατευθείαν μέσω http://localhost:8980/opennms/admin/index.jsp ![OpenNMS Admin Panel](./img/admin-panel.png)
+- Στο μενού ```Provisioning``` επιλέγουμε το ```Run Single Discovery Scan``` ή http://localhost:8980/opennms/admin/discovery/edit-scan.jsp ![Run Single Discovery Scan Option](./img/run-single-discovery.png)
+- Στις ρυθμίσεις του Single Discovery Scan, στο ```Include Ranges``` κάνουμε κλίκ στο ```Add New```. ![OpenNMS Single Discovery Scan Settings](./img/singe-discovery-settings.png)
+- Στο νέο παράθυρο που θα εμφανιστεί, στο πεδίο ```Begin IP Address``` εισάγουμε τη διέυθυνση ```10.0.0.0``` και στο πεδίο ```End IP Address``` εισάγουμε τη διέυθυνση ```10.0.0.254``` και έπειτα κάνουμε κλίκ στο ```Add``` να προσθέσουμε το εύρος των διευθύνσεων. ![Single Discovery Scan IP Range](./img/singe-discovery-ip-range.png)
+- Πλέον, το εύρος των διευθύνσεων αυτών θα πρέπει να εμφανιστεί ως εξής. ![IP Ranges Included](./img/include-ip-ranges.png)
+- Κάνουμε κλίκ στο κουμπί ```Start Discovery Scan``` ![Start Discovery Scan](./img/start-discovery-scan.png) με σκοπό να ξεκινήσει η αναζήτηση.
 
 Τα αποτελέσματα της αναζήτησης θα εμφανιστούν μετά από λίγα λεπτά μέχρι να ολοκληρωθεί η διαδικασία της ανακάλυψης όλων τον κόμβων δικτύου μέσα στο εύρος το οποίο δηλώσαμε.
 
 Το OpenNMS προσθέτει τους κόμβους που βρίσκει σε κάθε αναζήτηση στο ```Info -> Nodes```, δηλαδή, σε μία λίστα κόμβων όπου και από εκεί μπορούμε να επιλέξουμε τον κάθε κόμβο και να δούμε τις σχετικές πληροφορίες με αυτό. Μπορούμε να μεταβούμε στη λίστα αυτή και μέσω του συνδέσμου http://localhost:8980/opennms/element/nodeList.htm
 
-![Discovery Scan Results](scan-results.png)
+![Discovery Scan Results](./img/scan-results.png)
 Όπως παρατηρούμε και στην παραπάνω εικόνα, το OpenNMS είναι σε θέση να ανακαλύψει όλους τους κόμβους του δικτύου στο IMUNES που δηλώσαμε στο εύρος διευθύνσεων.
 
 Για να δούμε πληροφορίες σχετικά με τον κάθε κόμβο απλά κάνουμε κλίκ πάνω στο όνομα του. Ας εξερευνήσουμε τον κόμβο ```WEBSERVER```.
-![Node Info](webserver-node-details.png)
+![Node Info](./img/webserver-node-details.png)
 
 Βλέπουμε πως το OpenNMS έκανε χρήση του πρωτοκόλλου SNMP με σκοπό τη συλλογή δεδομένων σχετικά με τον κόμβο αυτό όπως παρατηρούμε στο ```SNMP Attributes```.
 
@@ -381,4 +381,4 @@ user@msnlab:~$ sudo imunes
 
 Το OpenNMS μας επιτρέπει να οργανώσουμε τους κόμβους δικτύων σε ομάδες για την ευκολότερη διαχείρηση τους. Επίσης, προσφέρει έλεγχο διαθεσιμότητας υπηρεσίας για κάθε κόμβο. Περαιτέρω, μας επιτρέπει να ανανεώσουμε και να ενημερώσουμε τις πληροφορίες του κάθε κόμβου. Οι πληροφορίες αυτές περιλαμβάνουν δεδομένα όπως το υλικό αλλά έως και πληροφορίες σχετικά με τη φυσική τοποθεσία ενός κόμβου. Αυτές οι πληροφορίες μας βοηθούν να καταλαβαίνουμε καλύτερα τις τοπολογίες των δικτύων μας και προσφέρουν ευκολότερη διαχείρηση των περιουσιακών στοιχείων ενός οργανισμού.
 
-![Asset Info](asset-info.png)
+![Asset Info](./img/asset-info.png)
